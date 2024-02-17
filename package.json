@@ -1,0 +1,19 @@
+{
+  "name": "visualdesh",
+  "version": "1.0.0",
+  "description": "Assignment from Blackcoffer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Govindghosh/MERN.git"
+  },
+  "author": "Govind Ghosh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Govindghosh/MERN/issues"
+  },
+  "homepage": "https://github.com/Govindghosh/MERN#readme"
+}
