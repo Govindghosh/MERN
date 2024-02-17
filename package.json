@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Govindghosh/MERN/issues"
   },
-  "homepage": "https://github.com/Govindghosh/MERN#readme"
+  "homepage": "https://github.com/Govindghosh/MERN#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
