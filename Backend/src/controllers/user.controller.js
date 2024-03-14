@@ -140,7 +140,31 @@ const loginUser = asyncHandler(async (req, res) => {
       )
     );
 });
-
+// Controller function to handle user logout
+const logoutUser = asyncHandler(async (req, res) => {
+  // Update the user document in the database to remove the refresh token
+  await User.findByIdAndUpdate(
+    req.user._id, // Find the user by their ID
+    {
+      $set: {
+        refreshToken: undefined, // Set the refresh token to undefined
+      },
+    },
+    {
+      new: true, // Return the updated document
+    }
+  );
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  // Send response indicating successful logout
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
+});
 
 // Export registerUser, loginUser, logoutUser functions
 export { registerUser, loginUser, logoutUser };
