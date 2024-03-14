@@ -50,15 +50,23 @@ const userSchema = new Schema(
     timestamps: true,
   }
 );
+// Middleware executed before saving a user document
 userSchema.pre("save", async function (next) {
+  // Check if the password field has been modified
   if (!this.isModified("password")) return next();
+  // Hash the password using bcrypt with a salt factor of 12
   this.password = await bcrypt.hash(this.password, 12);
+  // Proceed to save the document
   next();
 });
+// Method to compare a provided password with the hashed password
 userSchema.methods.isPasswordCorrect = async function (password) {
+  // Compare the provided password with the hashed password
   return await bcrypt.compare(password, this.password);
 };
+// Method to generate an access token for the user
 userSchema.methods.generateAccessToken = function () {
+  // Sign a JSON payload containing user information with a secret key
   return jwt.sign(
     {
       _id: this._id,
@@ -66,20 +74,22 @@ userSchema.methods.generateAccessToken = function () {
       username: this.username,
       fullName: this.fullName,
     },
-    process.env.ACCESS_TOKEN_SECRET,
+    process.env.ACCESS_TOKEN_SECRET, // Secret key for signing the token
     {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY, // Token expiration time
     }
   );
 };
+// Method to generate a refresh token for the user
 userSchema.methods.generateRefreshToken = function () {
+  // Sign a JSON payload containing user ID with a secret key
   return jwt.sign(
     {
       _id: this._id,
     },
-    process.env.REFRESH_TOKEN_SECRET,
+    process.env.REFRESH_TOKEN_SECRET, // Secret key for signing the token
     {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY, // Token expiration time
     }
   );
 };

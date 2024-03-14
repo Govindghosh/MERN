@@ -29,7 +29,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
     );
   }
 };
-
+// Function to handle user registration
 const registerUser = asyncHandler(async (req, res) => {
   // res.status(200).json({
   //   message: "ok",
@@ -37,7 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
   //------------------//
   // get user Details from frontend
   const { fullName, email, username, password } = req.body;
-  // validation - not empty
+  // Validation - Check if any required field is empty
   if (
     [fullName, email, username, password].some((field) => field?.trim() === "")
   ) {
@@ -90,7 +90,7 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(200, createdUser, "User registered Successfully"));
 });
-
+// Get logged-in user details without sensitive information
 const loginUser = asyncHandler(async (req, res) => {
   // get user Credentials from body
   const { email, username, password } = req.body;
@@ -120,5 +120,27 @@ const loginUser = asyncHandler(async (req, res) => {
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
+
+  // Set HTTP-only secure cookies for access and refresh tokens
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  // Return success response with logged-in user information
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User Logged In successfully"
+      )
+    );
 });
-export { registerUser, loginUser };
+
+
+// Export registerUser, loginUser, logoutUser functions
+export { registerUser, loginUser, logoutUser };
