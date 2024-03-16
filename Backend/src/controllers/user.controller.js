@@ -124,7 +124,7 @@ const loginUser = asyncHandler(async (req, res) => {
   // Set HTTP-only secure cookies for access and refresh tokens
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
   };
 
   // Return success response with logged-in user information
