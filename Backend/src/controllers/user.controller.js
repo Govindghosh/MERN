@@ -225,7 +225,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
   // Check if the old password provided matches the user's current password
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
-  
+
   // If old password is incorrect, throw an error
   if (!isPasswordCorrect) {
     throw new ApiError(400, "Old Password is wrong");
@@ -248,7 +248,29 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, req.user, "Current User Fetched Successfully"));
 });
+// Handler to update account details
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  // Extract fullName and email from request body
+  const { fullName, email } = req.body;
 
+  // Check if either fullName or email is provided
+  if (!(fullName || email)) {
+    // Throw an error if both fields are empty
+    throw new ApiError(400, "All fields are required");
+  }
+
+  // Update the user's details in the database
+  const user = await User.findByIdAndUpdate(
+    req.user?._id, // Find user by ID
+    { $set: { fullName, email } }, // Set new values for fullName and email
+    { new: true } // Return the updated user document
+  ).select("-password"); // Exclude password from the returned user object
+
+  // Return success response with the updated user details
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Account Details Updated Successfully"));
+});
 
 export {
   registerUser,
@@ -257,4 +279,5 @@ export {
   refreshAccessToken,
   changeCurrentPassword,
   getCurrentUser,
+  updateAccountDetails,
 };
