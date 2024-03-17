@@ -179,7 +179,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
-    
+
     // Find the user corresponding to the token's user ID
     const user = await User.findById(decodedToken?._id);
     // If no user found, throw 401 Unauthorized error
