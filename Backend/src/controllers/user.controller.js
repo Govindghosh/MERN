@@ -271,6 +271,49 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, user, "Account Details Updated Successfully"));
 });
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  // Get the local path of the uploaded Avatar image
+  const avatarLocalPath = req.file?.path;
+  console.log("from update User Avatar", avatarLocalPath);
+  // Check if the Avatar image path exists
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar File is Missing");
+  }
+  // Upload the Avatar image to Cloudinary
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  // Check if Avatar image upload was successful
+  if (!avatar.url) {
+    throw new ApiError(400, "Error while uploading avatar on Cloudinary");
+  }
+  // Update the user's Avatar image URL in the database
+  const user = await User.findByIdAndUpdate(
+    req.body?._id,
+    { $set: { avatar: avatar.url } }, // Set the cover image URL
+    { new: true } // Return the updated user document
+  ).select("-password"); // Exclude password from the returned user object
+  // Return success response with the updated user details
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Avatar file Update successfully"));
+});
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req.file?.path;
+  if (!coverImageLocalPath) {
+    throw new ApiError(400, "cover Image File is Missing");
+  }
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+  if (!coverImage) {
+    throw new ApiError(400, "Error while uploading Cover Image on Cloudinary");
+  }
+  const user = await User.findByIdAndUpdate(
+    req.body?._id,
+    { $set: { coverImage: coverImage.url } },
+    { new: true }
+  ).select("-password");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Cover file Update successfully"));
+});
 
 export {
   registerUser,
@@ -280,4 +323,6 @@ export {
   changeCurrentPassword,
   getCurrentUser,
   updateAccountDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
 };
