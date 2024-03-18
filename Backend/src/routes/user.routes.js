@@ -43,8 +43,12 @@ router.route("/getCurrentUser").post(verifyJWT, getCurrentUser);
 //Route for Update User Details in text deta
 router.route("/updateAccountDetails").post(verifyJWT, updateAccountDetails);
 //Route For Update the Avatar Image
-router.route("/updateUserAvatar").post(verifyJWT, updateUserAvatar);
+router
+  .route("/updateUserAvatar")
+  .post(verifyJWT, upload.single("avatar"), updateUserAvatar);
 //Route For Update Cover Image
-router.route("/updateUserCoverImage").post(verifyJWT,updateUserCoverImage);
+router
+  .route("/updateUserCoverImage")
+  .post(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
 
 export default router;

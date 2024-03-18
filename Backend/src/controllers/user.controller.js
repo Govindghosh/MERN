@@ -274,7 +274,12 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 const updateUserAvatar = asyncHandler(async (req, res) => {
   // Get the local path of the uploaded Avatar image
   const avatarLocalPath = req.file?.path;
-  console.log("from update User Avatar", avatarLocalPath);
+  console.log(
+    "user.controller avatarLocalPath req.files",
+    req.files,
+    "avatarLocalPath",
+    avatarLocalPath
+  );
   // Check if the Avatar image path exists
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar File is Missing");
