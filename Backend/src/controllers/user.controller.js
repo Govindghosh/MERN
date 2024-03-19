@@ -308,28 +308,39 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 });
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
+  // Get the local path of the uploaded Cover file from the request
   const coverImageLocalPath = req.file?.path;
-  console.log(
-    "user.controller coverImageLocalPath req.files",
-    req.files,
-    "coverImageLocalPath",
-    coverImageLocalPath
-  );
+
+  // Check if the Cover file is missing
   if (!coverImageLocalPath) {
-    throw new ApiError(400, "cover Image File is Missing");
+    throw new ApiError(400, "Cover file is missing");
   }
+
+  // Upload the Cover to Cloudinary
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-  if (!coverImage) {
-    throw new ApiError(400, "Error while uploading Cover Image on Cloudinary");
+
+  // Check if there was an error while uploading the Cover
+  if (!coverImage.url) {
+    throw new ApiError(400, "Error while uploading Cover Image");
   }
-  const user = await User.findByIdAndUpdate(
-    req.body?._id,
-    { $set: { coverImage: coverImage.url } },
-    { new: true }
-  ).select("-password");
+
+  // Retrieve user without password
+  const user = await User.findById(req.user?._id).select("-password");
+
+  // Store old Cover Image URL
+  const oldCoverImage = user.coverImage;
+
+  // Update user with new Cover Image URL
+  user.coverImage = coverImage.url;
+  await user.save();
+
+  // Delete the previous image from cloudinary
+  deleteOnCloudinary(oldCoverImage);
+
+  // Send success response with updated user information
   return res
     .status(200)
-    .json(new ApiResponse(200, user, "Cover file Update successfully"));
+    .json(new ApiResponse(200, user, "Cover Image updated successfully"));
 });
 
 export {
