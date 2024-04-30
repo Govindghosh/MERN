@@ -34,6 +34,7 @@ const deleteOnCloudinary = async (url) => {
     //delete the file on cloudinary
     await cloudinary.uploader.destroy(
       url.split("/").pop().split(".")[0],
+
       (error) => {
         if (error) {
           throw new ApiError(402, error, "Image Not Found");

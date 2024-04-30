@@ -1,1 +1,1 @@
-export const DB_NAME = "blackcoffer"
+export const DB_NAME = "MERNstudy";
