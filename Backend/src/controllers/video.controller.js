@@ -1,100 +1,115 @@
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
-import { User } from "../models/user.model.js";
 import mongoose from "mongoose";
 
 const uploadVideo = asyncHandler(async (req, res) => {
-  try {
-    const { title, description, isPublished } = req.body;
-    if ([title, description].some((field) => field?.trim() === "")) {
-      throw new ApiError(400, "All fields are required");
-    }
-
-    if (!title || !description) {
-      throw new ApiError(400, "title video and description files are required");
-    }
-    let videoFileLocalPath;
-    let thumbnailLocalfilePath;
-
-    // const localThumbnailPath = req.files?.thumbnail?.[0]?.path;
-    // const localVideoPath = req.files?.videoFile?.[0]?.path;
-    // console.log(
-    //   "localVideoPath",
-    //   localVideoPath,
-    //   "-------",
-    //   "localThumbnailPath",
-    //   localThumbnailPath
-    // );
-    if (
-      req.files &&
-      Array.isArray(req.files.videoFile) &&
-      req.files.videoFile.length > 0
-    ) {
-      videoFileLocalPath = req.files?.videoFile[0]?.path;
-    }
-    if (
-      req.files &&
-      Array.isArray(req.files.thumbnail) &&
-      req.files.thumbnail.length > 0
-    ) {
-      thumbnailLocalfilePath = req.files?.thumbnail[0]?.path;
-    }
-    console.log(
-      "videoFileLocalPath",
-      videoFileLocalPath,
-      "-------",
-      "thumbnailLocalfilePath",
-      thumbnailLocalfilePath
+  const { title, description, isPublished } = req.body;
+  const existsTitle = await Video.findOne({
+    title,
+  });
+  if (existsTitle) {
+    throw new ApiError(
+      409,
+      "Title already exists in you videos please change the title"
     );
-
-    // Upload files to Cloudinary
-    const videoFile = await uploadOnCloudinary(videoFileLocalPath);
-    const thumbnail = await uploadOnCloudinary(thumbnailLocalfilePath);
-
-    if (!videoFile) {
-      throw new ApiError(500, "Error uploading videofiles to Cloudinary");
-    }
-    if (!thumbnail) {
-      throw new ApiError(500, "Error uploading thumbnail to Cloudinary");
-    }
-
-    const duration =
-      typeof videoFile.duration === "string"
-        ? parseFloat(videoFile.duration)
-        : videoFile.duration;
-
-    // Create new video document
-    const newVideo = await Video.create({
-      videoFile,
-      thumbnail,
-      title,
-      description,
-      duration,
-      isPublished,
-      owner:
-        req.user && req.user._id
-          ? new mongoose.Types.ObjectId(req.user._id)
-          : null,
-    });
-
-    // Respond with success message
-    return res
-      .status(201)
-      .json(new ApiResponse(200, newVideo, "Video uploaded successfully"));
-  } catch (error) {
-    console.error("Error uploading video:", error); // Log the error for debugging
-    throw new ApiError(500, "Internal server error while uploading video");
   }
+
+  // Input validation
+  if (!title || !description) {
+    throw new ApiError(400, "Title or Description missing");
+  }
+  console.log("my console req.files", req.files);
+  // Check if files are uploaded
+  if (!req.files || !req.files.videoFile || !req.files.thumbnail) {
+    throw new ApiError(400, "Video file or Thumbnail not uploaded");
+  }
+
+  const videoFileLocalPath = req.files.videoFile[0].path;
+  const thumbnailLocalPath = req.files.thumbnail[0].path;
+
+  console.log("thumbnailLocalPath", thumbnailLocalPath);
+
+  // Upload video file to Cloudinary
+  const videoFileUploadResult = await uploadOnCloudinary(videoFileLocalPath);
+
+  if (!videoFileUploadResult.url) {
+    throw new ApiError(500, "Could not upload video file to Cloudinary");
+  }
+
+  // Upload thumbnail file to Cloudinary
+  const thumbnailUploadResult = await uploadOnCloudinary(thumbnailLocalPath);
+
+  const duration =
+    typeof videoFileUploadResult.duration === "string"
+      ? parseFloat(videoFileUploadResult.duration)
+      : videoFileUploadResult.duration;
+
+  // Create new video document
+  const newVideo = await Video.create({
+    videoFile: videoFileUploadResult.url,
+    thumbnail: thumbnailUploadResult.url,
+    title,
+    description,
+    duration,
+    // owner: req.user ? mongoose.Types.ObjectId(req.user._id) : null,
+    owner: req.user?._id,
+    isPublished: isPublished,
+  });
+
+  // Respond with success message
+  return res
+    .status(201)
+    .json(new ApiResponse(200, newVideo, "Video uploaded successfully"));
 });
 
 const getAllVideo = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+
   try {
+    let filter = {};
+    if (userId) {
+      filter.owner = userId; // Filter by userId if provided
+    }
+    if (query) {
+      // If query string provided, search by title and description
+      filter.$or = [
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+      ];
+    }
+
+    // Count total documents matching filter
+    const total = await Video.countDocuments(filter);
+
+    // Find videos based on filter, pagination, sorting
+    const videos = await Video.find(filter)
+      .sort({ [sortBy || "createdAt"]: sortType === "desc" ? -1 : 1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .exec();
+
+    // Respond with paginated result
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          videos,
+          totalPages: Math.ceil(total / limit),
+          currentPage: page,
+          totalVideos: total,
+        },
+        "Videos retrieved successfully"
+      )
+    );
   } catch (error) {
-    throw new ApiError(402, error, "Can't get Video");
+    throw new ApiError(
+      500,
+      error.message || "Internal Server Error",
+      "Can't get Videos"
+    );
   }
 });
 
