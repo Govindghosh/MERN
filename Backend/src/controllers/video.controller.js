@@ -149,51 +149,20 @@ const updateVideo = asyncHandler(async (req, res) => {
   }
   try {
     let updatedVideo;
-    if (title) {
+    if (title && description && thumbnailFile.url && videoFile.url) {
       updatedVideo = await Video.findByIdAndUpdate(
         videoId,
         {
           $set: {
             title: title,
-          },
-        },
-        { new: true }
-      );
-    }
-    if (description) {
-      updatedVideo = await Video.findByIdAndUpdate(
-        videoId,
-        {
-          $set: {
             description: description,
-          },
-        },
-        { new: true }
-      );
-    }
-    if (thumbnailFile && thumbnailFile.url) {
-      updatedVideo = await Video.findByIdAndUpdate(
-        videoId,
-        {
-          $set: {
             thumbnail: thumbnailFile.url,
-          },
-        },
-        { new: true }
-      );
-    }
-    if (videoFile && videoFile.url) {
-      updatedVideo = await Video.findByIdAndUpdate(
-        videoId,
-        {
-          $set: {
             videoFile: videoFile.url,
           },
         },
         { new: true }
       );
     }
-
     return res
       .status(200)
       .json(new ApiResponse(200, updatedVideo, "Video updated successfully"));
