@@ -170,5 +170,40 @@ const updateVideo = asyncHandler(async (req, res) => {
     throw new ApiError(500, error.message || "internal server error");
   }
 });
+const deleteVideo = asyncHandler(async (req, res) => {
+  //get video which video want to delete;
+  // check the owner of video if is same then do
+  //delete the video
+  // delete cloudnary url also
+  // TODO: delete like && comments
+  const { videoId } = req.params;
+  console.log("videoId from the params", videoId);
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(409, "Inavalid video ID");
+  }
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(409, "video is missing in database");
+  }
+  if (req.user?._id.toString() != video.owner.toString()) {
+    throw new ApiError(
+      400,
+      "you can't delete this video - you are not a owner of video"
+    );
+  }
+  const videoUrl = video.videoFile;
+  const thumbnailUrl = video.thumbnail;
+  if (!videoUrl || !thumbnailUrl) {
+    throw new ApiError(500, "video and thumbnail missing at database");
+  }
 
-export { getAllVideo, uploadVideo, updateVideo };
+  await Video.findByIdAndDelete(videoId);
+  const response = Video.findById(videoId);
+  await deleteOnCloudinary(thumbnailUrl);
+  await deleteOnCloudinary(videoUrl);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, response?.[0], "video successfully deleted"));
+});
+
+export { getAllVideo, uploadVideo, updateVideo, deleteVideo };

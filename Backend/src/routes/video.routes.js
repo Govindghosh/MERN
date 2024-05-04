@@ -6,6 +6,7 @@ import {
   uploadVideo,
   getAllVideo,
   updateVideo,
+  deleteVideo,
 } from "../controllers/video.controller.js";
 
 const router = Router();
@@ -27,7 +28,7 @@ router.route("/uploadVideo").post(
 );
 
 router.route("/get-allVideo").get(verifyJWT, getAllVideo);
-router.route("/channel/:username/video/:videoId").patch(
+router.route("/channel/video/:videoId").patch(
   verifyJWT,
   upload.fields([
     {
@@ -41,5 +42,6 @@ router.route("/channel/:username/video/:videoId").patch(
   ]),
   updateVideo
 );
+router.route("/delete/:videoId").delete(verifyJWT, deleteVideo);
 
 export default router;

@@ -27,23 +27,32 @@ const uploadOnCloudinary = async (localFilePath) => {
 const deleteOnCloudinary = async (url) => {
   try {
     if (!url) {
-      console.log("Could not find the old Image");
       return null;
     }
 
-    //delete the file on cloudinary
-    await cloudinary.uploader.destroy(
-      url.split("/").pop().split(".")[0],
+    // Extract public ID from the URL
+    const publicId = url.split("/").pop().split(".")[0];
+    console.log("public ID:", publicId);
 
-      (error) => {
-        if (error) {
-          throw new ApiError(402, error, "Image Not Found");
-        }
-      }
-    );
+    // Determine the resource type based on the file extension
+    const fileType = url.split(".").pop(); // Get the file extension
+    let resourceType;
+    if (fileType === "mp4" || fileType === "mov" || fileType === "avi") {
+      resourceType = "video";
+    } else {
+      resourceType = "image";
+    }
+
+    // Delete the file on Cloudinary
+    const response = await cloudinary.uploader.destroy(publicId, {
+      type: "upload",
+      resource_type: resourceType,
+    });
+
+    console.log("Cloudinary response for delete:", response);
+    return response;
   } catch (error) {
-    console.log("Error in deleting image on clodinary", error);
-
+    console.log("Error in deleting file on Cloudinary:", error);
     return null;
   }
 };
