@@ -48,7 +48,7 @@ const getChannelSubscriber = asyncHandler(async (req, res) => {
     {
       $match: {
         channel: new mongoose.Types.ObjectId(channelId),
-      }
+      },
     },
     {
       $facet: {
@@ -72,17 +72,16 @@ const getChannelSubscriber = asyncHandler(async (req, res) => {
           },
           {
             $addFields: {
-                subscribers: {
-                  $first: "$subscribers",
-                },
+              subscribers: {
+                $first: "$subscribers",
               },
+            },
           },
         ],
         subscribersCount: [{ $count: "subscribers" }],
       },
     },
   ]);
-  console.log("getSubscribe", getSubscribe[[0]]);
   return res
     .status(200)
     .json(
@@ -93,4 +92,62 @@ const getChannelSubscriber = asyncHandler(async (req, res) => {
       )
     );
 });
-export { toggleSubscription, getChannelSubscriber };
+const getSubscribedChannels = asyncHandler(async (req, res) => {
+  const { subscriberId } = req.params;
+  
+  if (!mongoose.Types.ObjectId.isValid(subscriberId)) {
+    throw new ApiError(400, "Subscriber ID is not valid.");
+  }
+
+  if (req.user?._id.toString() !== subscriberId) {
+    throw new ApiError(
+      400,
+      "Unauthorized request: the request user and the subscriber are not the same person."
+    );
+  }
+
+  const getChannels = await Subscription.aggregate([
+    {
+      $match: {
+        subscriber: new mongoose.Types.ObjectId(subscriberId),
+      },
+    },
+    {
+      $facet: {
+        channelSubscribedTo: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "channel",
+              foreignField: "_id",
+              as: "channel",
+              pipeline: [
+                {
+                  $project: {
+                    username: 1,
+                    fullName: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              channel: {
+                $first: "$channel",
+              },
+            },
+          },
+        ],
+        channelsSubscribedToCount: [{ $count: "channel" }],
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, getChannels[0], "Subscribed channels fetched."));
+});
+
+export { toggleSubscription, getChannelSubscriber, getSubscribedChannels };
