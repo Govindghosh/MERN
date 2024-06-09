@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 const commentsSchema = new Schema(
   {
-    comment: {
+    contant: {
       type: String,
       required: true,
     },
