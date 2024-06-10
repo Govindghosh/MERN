@@ -8,12 +8,12 @@ import mongoose from "mongoose";
 const getVideoComments = asyncHandler(async (req, res) => {});
 const addComment = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  const { contant } = req.body;
-  console.log("contant", contant);
+  const { content } = req.body;
+  console.log("content", content);
   if (!mongoose.Types.ObjectId.isValid(videoId)) {
     throw new ApiError(400, "Video ID is not valid.");
   }
-  if (!contant || contant.trim() === "") {
+  if (!content || content.trim() === "") {
     throw new ApiError(400, "Content can't be empty");
   }
   const video = await Video.findById(videoId);
@@ -22,7 +22,7 @@ const addComment = asyncHandler(async (req, res) => {
   }
   const user = req.user?._id;
   const comment = await Comment.create({
-    contant,
+    content,
     videoToComment: video,
     ownerOfComment: user,
   });
@@ -35,7 +35,11 @@ const addComment = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(200, getComment, "Comment posted successfully."));
 });
-const updateComment = asyncHandler(async (req, res) => {});
+const updateComment = asyncHandler(async (req, res) => {
+  const { content } =req.body;
+  const { videoId }=req.params;
+});
 const deleteComment = asyncHandler(async (req, res) => {});
 
 export { getVideoComments, addComment, updateComment, deleteComment };
+const 
