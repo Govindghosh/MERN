@@ -26,20 +26,50 @@ const addComment = asyncHandler(async (req, res) => {
     videoToComment: video,
     ownerOfComment: user,
   });
-  const getComment = await Comment.findById(comment._id)
+  const getComment = await Comment.findById(comment._id);
 
-    if (!getComment) {
-        throw new ApiError(500, "Something went wrong while posting a comment")
-    };
+  if (!getComment) {
+    throw new ApiError(500, "Something went wrong while posting a comment");
+  }
   return res
     .status(201)
     .json(new ApiResponse(200, getComment, "Comment posted successfully."));
 });
 const updateComment = asyncHandler(async (req, res) => {
-  const { content } =req.body;
-  const { videoId }=req.params;
+  const { content } = req.body;
+  const { videoId, commentId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(commentId)) {
+    throw new ApiError(400, "comment Id is not valid.");
+  }
+  if (!mongoose.Types.ObjectId.isValid(videoId)) {
+    throw new ApiError(400, "Video Id is not valid.");
+  }
+  if (!content || content.trim() === "") {
+    throw new ApiError(400, "Content can't be empty");
+  }
+  const oldComment = await Comment.findById(commentId);
+  if (oldComment.videoToComment.toString() !== videoId) {
+    throw new ApiError(400, "Invalid video");
+  }
+  if (oldComment.ownerOfComment?.toString() !== req.user?._id.toString()) {
+    throw new ApiError(403, "You are not authorized to edit this comment");
+  }
+  try {
+    const updatedComment  = await Comment.findByIdAndUpdate(
+      commentId,
+      {
+        $set: { content: content },
+      },
+      { new: true }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updatedComment , "successfully Update comment"));
+  } catch (error) {
+    throw new ApiError(500, "Unable to update comment");
+  }
 });
 const deleteComment = asyncHandler(async (req, res) => {});
 
 export { getVideoComments, addComment, updateComment, deleteComment };
-const 
