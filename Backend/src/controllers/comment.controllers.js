@@ -56,7 +56,7 @@ const updateComment = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not authorized to edit this comment");
   }
   try {
-    const updatedComment  = await Comment.findByIdAndUpdate(
+    const updatedComment = await Comment.findByIdAndUpdate(
       commentId,
       {
         $set: { content: content },
@@ -65,11 +65,40 @@ const updateComment = asyncHandler(async (req, res) => {
     );
     return res
       .status(200)
-      .json(new ApiResponse(200, updatedComment , "successfully Update comment"));
+      .json(
+        new ApiResponse(200, updatedComment, "successfully Update comment")
+      );
   } catch (error) {
     throw new ApiError(500, "Unable to update comment");
   }
 });
-const deleteComment = asyncHandler(async (req, res) => {});
+const deleteComment = asyncHandler(async (req, res) => {
+  const { commentId, videoId } = req.params;
+  if (!commentId) {
+    throw new ApiError(404, "unable to get comment");
+  }
+  if (!mongoose.Types.ObjectId.isValid(commentId)) {
+    throw new ApiError(404, "comment id is not a valid");
+  }
+  const comment = await Comment.findById(commentId);
+  if (!comment) {
+    throw new ApiError(400, "Comment have been already delete");
+  }
+  if (videoId !== comment.videoToComment.toString()) {
+    throw new ApiError(200, "which video to delete the comment is not find")
+  }
+  if (comment.ownerOfComment.toString() !== req.user?._id.toString()) {
+    throw new ApiError(400, "you can not delete comment");
+  }
+  try {
+    await Comment.findByIdAndDelete(commentId);
+    //TODO delete Likes also
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Comment deleted successfully"));
+  } catch (error) {
+    throw new ApiError(400, "unable to delete comment please try again");
+  }
+});
 
 export { getVideoComments, addComment, updateComment, deleteComment };
