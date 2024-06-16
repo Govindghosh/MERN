@@ -5,7 +5,101 @@ import { User } from "../models/user.model.js";
 import { Comment } from "../models/comments.model.js";
 import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
-const getVideoComments = asyncHandler(async (req, res) => {});
+const getVideoComments = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
+  if (!videoId) {
+    throw new ApiError(400, "not get videoId from params");
+  }
+  if (!pageNum || !limitNum || pageNum === 0) {
+    throw new ApiError(400, "Please provide a valid input");
+  }
+  if (!mongoose.Types.ObjectId.isValid(videoId)) {
+    throw new ApiError(404, "video id is not a valid");
+  }
+  const getComments = await Comment.aggregate([
+    {
+      $match: {
+        video: new mongoose.Types.ObjectId(videoId),
+      },
+    },
+    {
+      $skip: (pageNum - 1) * limitNum,
+    },
+    {
+      $limit: limitNum,
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "ownerOfComment",
+        foreignField: "_id",
+        as: "ownerOfComment",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              fullName: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "comment",
+        as: "totalLikeOnComment",
+      },
+    },
+    {
+      $addFields: {
+        likedByUser: {
+          $in: [req.user?._id, "$totalLikeOnComment.likedBy"],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        content: { $first: "$content" },
+        ownerOfComment: { $first: "$ownerOfComment" },
+        videoToComment: { $first: "$videoToComment" },
+        createdAt: { $first: "$createdAt" },
+        updatedAt: { $first: "$updatedAt" },
+        totalLikesOnComment: { $sum: { $size: "$totalLikesOnComment" } },
+        likedByUser: { $first: "$likedByUser" },
+      },
+    },
+    {
+      $addFields: {
+        owner: {
+          $first: "$owner",
+        },
+        isOwner: {
+          $cond: {
+            if: { $eq: [req.user?._id, { $arrayElemAt: ["$owner._id", 0] }] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+  ]);
+  if (!getComments?.length) {
+    throw new ApiError(
+      404,
+      "No comments found for this video. Or, you may try a lower page number."
+    );
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, getComments, "Comments fetched successfully"));
+});
 const addComment = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { content } = req.body;
@@ -85,7 +179,7 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Comment have been already delete");
   }
   if (videoId !== comment.videoToComment.toString()) {
-    throw new ApiError(200, "which video to delete the comment is not find")
+    throw new ApiError(200, "which video to delete the comment is not find");
   }
   if (comment.ownerOfComment.toString() !== req.user?._id.toString()) {
     throw new ApiError(400, "you can not delete comment");
