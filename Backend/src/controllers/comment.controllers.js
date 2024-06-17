@@ -10,19 +10,22 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   const pageNum = Number(page);
   const limitNum = Number(limit);
+
   if (!videoId) {
-    throw new ApiError(400, "not get videoId from params");
+    throw new ApiError(400, "Video ID not provided in params");
   }
-  if (!pageNum || !limitNum || pageNum === 0) {
-    throw new ApiError(400, "Please provide a valid input");
+  console.log(videoId)
+  if (isNaN(pageNum) || isNaN(limitNum) || pageNum <= 0 || limitNum <= 0) {
+    throw new ApiError(400, "Please provide valid page and limit values");
   }
   if (!mongoose.Types.ObjectId.isValid(videoId)) {
-    throw new ApiError(404, "video id is not a valid");
+    throw new ApiError(404, "Invalid video ID");
   }
+
   const getComments = await Comment.aggregate([
     {
       $match: {
-        video: new mongoose.Types.ObjectId(videoId),
+        videoToComment: new mongoose.Types.ObjectId(videoId),
       },
     },
     {
@@ -71,18 +74,16 @@ const getVideoComments = asyncHandler(async (req, res) => {
         videoToComment: { $first: "$videoToComment" },
         createdAt: { $first: "$createdAt" },
         updatedAt: { $first: "$updatedAt" },
-        totalLikesOnComment: { $sum: { $size: "$totalLikesOnComment" } },
+        totalLikesOnComment: { $first: { $size: "$totalLikeOnComment" } },
         likedByUser: { $first: "$likedByUser" },
       },
     },
     {
       $addFields: {
-        owner: {
-          $first: "$owner",
-        },
+        owner: { $arrayElemAt: ["$ownerOfComment", 0] },
         isOwner: {
           $cond: {
-            if: { $eq: [req.user?._id, { $arrayElemAt: ["$owner._id", 0] }] },
+            if: { $eq: [req.user?._id, { $arrayElemAt: ["$ownerOfComment._id", 0] }] },
             then: true,
             else: false,
           },
@@ -90,16 +91,14 @@ const getVideoComments = asyncHandler(async (req, res) => {
       },
     },
   ]);
+
   if (!getComments?.length) {
-    throw new ApiError(
-      404,
-      "No comments found for this video. Or, you may try a lower page number."
-    );
+    throw new ApiError(404, "No comments found for this video. Or, try a lower page number.");
   }
-  return res
-    .status(200)
-    .json(new ApiResponse(200, getComments, "Comments fetched successfully"));
+
+  return res.status(200).json(new ApiResponse(200, getComments, "Comments fetched successfully"));
 });
+
 const addComment = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { content } = req.body;
