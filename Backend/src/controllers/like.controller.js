@@ -62,8 +62,58 @@ const toggleLike = asyncHandler(async (req, res) => {
       new ApiResponse(200, createdLikedEntity, `${type} liked successfully`)
     );
 });
-const getLikesVideo = asyncHandler(async(req, res)=>{
-
-
-})
+const getLikesVideo = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const getLikedVideos = await Like.aggregate([
+    {
+      $match: {
+        likedBy: new mongoose.Types.ObjectId(userId),
+        video: { $exists: true },
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "video",
+        foreignField: "_id",
+        as: "video",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                    avatar: 1,
+                    username: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: { $first: "$owner" },
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: { video: { $first: "$video" } },
+    },
+  ]);
+  if (!getLikedVideos?.length) {
+    throw new ApiError(404, "You haven't liked any videos yet");
+  }
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, getLikedVideos, "Liked videos fetched successfully")
+    );
+});
 export { toggleLike, getLikesVideo };
