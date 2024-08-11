@@ -23,6 +23,30 @@ const createTweet = asyncHandler(async (req, res) => {
 });
 const getUserTweets = asyncHandler(async (req, res) => {});
 const updateTweet = asyncHandler(async (req, res) => {});
-const deleteTweet = asyncHandler(async (req, res) => {});
+const deleteTweet = asyncHandler(async (req, res) => {
+  const { tweetId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(tweetId)) {
+    throw new ApiError(400, "Not a valid tweetId");
+  }
+  const tweet = await Tweet.findById(tweetId);
+  if (!tweet) {
+    throw new ApiError(404, "tweet was deleted");
+  }
+  if (req.user?._id.toString() != tweet.owner.toString()) {
+    throw new ApiError(405, "You can not Deleted this Tweet");
+  }
+  try {
+    await Tweet.findByIdAndDelete(tweetId);
+    //TODO://delete Tweet Likes Also
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Tweet deleted Successfully"));
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Try after some time we unable to delete at this moment"
+    );
+  }
+});
 
 export { createTweet, getUserTweets, updateTweet, deleteTweet };
