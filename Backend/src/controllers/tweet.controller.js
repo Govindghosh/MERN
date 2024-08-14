@@ -22,7 +22,84 @@ const createTweet = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, createdTweet, " Your Tweet now live "));
 });
-const getUserTweets = asyncHandler(async (req, res) => {});
+const getUserTweets = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  console.log("======From getUserTweets userId", userId)
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(404, "User Id is not valid");
+  }
+  const tweet = await Tweet.aggregate([
+    {
+      $match: {
+        tweetOwner: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweet",
+        as: "tweetLikedBy",
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        text: { $first: "$text" },
+        totalTweetLikes: { $sum: { $size: "$tweetLikedBy" } },
+        createdAt: { $first: "$createdAt" },
+        updatedAt: { $first: "$updatedAt" },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+  ]);
+  if (!tweet?.length) {
+    throw new ApiError(402, "tweet not available");
+  }
+  const tweetedBy = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $addFields: {
+        isTweetOwner: {
+          $cond: {
+            if: { $eq: [req.user?._id.toString(), userId]},
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        userName: 1,
+        fullName: 1,
+        avatar: 1,
+        isTweetOwner: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    },
+  ]);
+  const tweetListAndOwner = {
+    tweet,
+    tweetedBy,
+  };
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        tweetListAndOwner,
+        "All Tweet is Fetched Successfully"
+      )
+    );
+});
 const updateTweet = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(tweetId)) {
@@ -43,13 +120,11 @@ const updateTweet = asyncHandler(async (req, res) => {
     );
   }
   await Tweet.updateOne(
-    { _id: tweetId, tweetOwner: req.user?._id},
-    { $set: { text: content }},
+    { _id: tweetId, tweetOwner: req.user?._id },
+    { $set: { text: content } },
     { new: true }
   );
-  return res
-  .status(200)
-  .json(new ApiResponse(200, "tweet update"));
+  return res.status(200).json(new ApiResponse(200, "tweet update"));
 });
 const deleteTweet = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
