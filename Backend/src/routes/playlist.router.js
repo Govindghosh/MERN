@@ -14,5 +14,6 @@ import {
 const router = Router();
 router.route("/createPlaylist").post(verifyJWT, createPlaylist);
 router.route("/getUserPlaylist/:userId").get(verifyJWT, getUserPlaylist);
+router.route("/getPlaylistById/:playlistId").get(verifyJWT, getPlaylistById);
 
 export default router;

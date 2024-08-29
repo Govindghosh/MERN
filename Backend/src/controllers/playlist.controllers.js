@@ -53,7 +53,76 @@ const getUserPlaylist = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, userPlaylist, "playlist fatched"));
 });
-const getPlaylistById = asyncHandler(async (req, res) => {});
+const getPlaylistById = asyncHandler(async (req, res) => {
+  const {playlistId} = req.params;
+  console.log("playlist", playlistId)
+  if (!mongoose.Types.ObjectId.isValid(playlistId)) {
+    throw new ApiError(400, "Playlist id are not a valid")
+  }
+  const playlist = await Playlist.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(playlistId)
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              fullName: 1,
+              username: 1,
+              avatar: 1
+            }
+          }
+        ]
+      }
+    },{
+      $addFields:{
+        owner: {$first: "$owner"}
+      }
+    },{
+      $lookup:{
+        from: "videos",
+        localField: "videos",
+        foreignField: "_id",
+        as: "videos",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [{
+                $project: {
+                  _id: 1,
+                  fullName: 1,
+                  username: 1,
+                  avatar: 1
+                }
+              }]
+            }
+
+          },{
+            $addFields:{
+              owner: {$first: "$owner"}
+            }
+          }
+        ]
+      }
+    }
+  ])
+  if (!playlist.length) {
+    throw new ApiError(404, "This playlist does not exist")
+  }
+  return res.status(200).json(new ApiResponse(200, playlist, "Playlist fetched"))
+});
 const getPlaylistByName = asyncHandler(async (req, res) => {});
 const addVideoToPlaylist = asyncHandler(async (req, res) => {});
 const updatePlaylist = asyncHandler(async (req, res) => {});
