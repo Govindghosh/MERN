@@ -30,7 +30,29 @@ const createPlaylist = asyncHandler(async (req, res) => {
       new ApiResponse(200, createdPlaylist, "Playlist created successfully")
     );
 });
-const getUserPlaylist = asyncHandler(async (req, res) => {});
+const getUserPlaylist = asyncHandler(async (req, res) => {
+  const {userId} = req.params;
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(404, "User Id not found!");
+  }
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(400, "User not found!");
+  }
+  const userPlaylist = await Playlist.aggregate([
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(user),
+      },
+    },
+  ]);
+  if (!userPlaylist.length) {
+    throw new ApiError(410, "User don't have playlist");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, userPlaylist, "playlist fatched"));
+});
 const getPlaylistById = asyncHandler(async (req, res) => {});
 const getPlaylistByName = asyncHandler(async (req, res) => {});
 const addVideoToPlaylist = asyncHandler(async (req, res) => {});
