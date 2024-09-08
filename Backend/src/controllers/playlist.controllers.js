@@ -132,33 +132,36 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 const getPlaylistByName = asyncHandler(async (req, res) => {});
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
-  
-  if (!mongoose.Types.ObjectId.isValid(playlistId) || !mongoose.Types.ObjectId.isValid(videoId)) {
+
+  if (
+    !mongoose.Types.ObjectId.isValid(playlistId) ||
+    !mongoose.Types.ObjectId.isValid(videoId)
+  ) {
     throw new ApiError(400, "Invalid playlist or video ID");
   }
-  
+
   const video = await Video.findById(videoId);
   const playlist = await Playlist.findById(playlistId);
-  
+
   if (!playlist) {
     throw new ApiError(404, "Playlist not found");
   }
-  
+
   console.log("Playlist videos type:", typeof playlist.videos);
   console.log("Is playlist videos an array:", Array.isArray(playlist.videos));
-  
+
   if (playlist.owner.toString() != req.user._id.toString()) {
     throw new ApiError(403, "You cannot add to this playlist");
   }
-  
+
   if (!video) {
     throw new ApiError(404, "Video not found");
   }
-  
+
   if (Array.isArray(playlist.videos) && playlist.videos.includes(videoId)) {
     throw new ApiError(400, "Video already added to the playlist");
   }
-  
+
   try {
     const updatedPlaylist = await Playlist.findByIdAndUpdate(
       playlistId,
@@ -176,7 +179,55 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
   }
 });
 
-const updatePlaylist = asyncHandler(async (req, res) => {});
+const updatePlaylist = asyncHandler(async (req, res) => {
+  const { playlistId } = req.params;
+  const { name, description } = req.body;
+
+  // Validate playlistId
+  if (!playlistId || !mongoose.Types.ObjectId.isValid(playlistId)) {
+    throw new ApiError(400, "Invalid or missing playlistId");
+  }
+  if (
+    (name && name.trim() === "") ||
+    (description && description.trim() === "")
+  ) {
+    throw new ApiError(400, "Fields cannot be empty");
+  }
+
+  // Create update object only with provided fields
+  const updateData = {};
+  if (name) updateData.name = name.trim();
+  if (description) updateData.description = description.trim();
+
+  if (Object.keys(updateData).length === 0) {
+    throw new ApiError(400, "At least one field must be provided for update");
+  }
+
+  // Try updating the playlist in one step, checking ownership and returning new playlist
+  try {
+    const updatedPlaylist = await Playlist.findOneAndUpdate(
+      { _id: playlistId,owner: req.user._id }, // Ensure ownership check during update
+      { $set: updateData },
+      { new: true }
+    );
+
+    if (!updatedPlaylist) {
+      throw new ApiError(
+        404,
+        "Playlist not found or you're not authorized to update it"
+      );
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, updatedPlaylist, "Playlist updated successfully")
+      );
+  } catch (error) {
+    console.log(error);
+    throw new ApiError(500, "Internal server error");
+  }
+});
 const deletePlaylist = asyncHandler(async (req, res) => {});
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {});
 export {

@@ -16,6 +16,7 @@ router.route("/createPlaylist").post(verifyJWT, createPlaylist);
 router.route("/getUserPlaylist/:userId").get(verifyJWT, getUserPlaylist);
 router.route("/getPlaylistById/:playlistId").get(verifyJWT, getPlaylistById);
 router.route("/addVideoToPlaylist/:playlistId/:videoId").patch(verifyJWT, addVideoToPlaylist);
+router.route("/updatePlaylist/:playlistId").patch(verifyJWT, updatePlaylist);
 
 
 export default router;
