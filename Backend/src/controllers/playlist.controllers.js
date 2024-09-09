@@ -206,7 +206,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   // Try updating the playlist in one step, checking ownership and returning new playlist
   try {
     const updatedPlaylist = await Playlist.findOneAndUpdate(
-      { _id: playlistId,owner: req.user._id }, // Ensure ownership check during update
+      { _id: playlistId, owner: req.user._id }, // Ensure ownership check during update
       { $set: updateData },
       { new: true }
     );
@@ -228,7 +228,32 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Internal server error");
   }
 });
-const deletePlaylist = asyncHandler(async (req, res) => {});
+const deletePlaylist = asyncHandler(async (req, res) => {
+  const { playlistId } = req.params;
+  if (!playlistId || !mongoose.Types.ObjectId.isValid(playlistId)) {
+    throw new ApiError(400, "Playlist Id is not valid in the database");
+  }
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+  if (req.user._id.toString() !== playlist.owner.toString()) {
+    throw new ApiError(
+      403,
+      "You cannot delete this playlist, please log in with the owner's account"
+    );
+  }
+
+  try {
+    await Playlist.findByIdAndDelete(playlistId);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Playlist successfully deleted"));
+  } catch (error) {
+    throw new ApiError(500, "Unable to delete playlist, please try again");
+  }
+});
+
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {});
 export {
   createPlaylist,
