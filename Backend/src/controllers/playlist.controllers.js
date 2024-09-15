@@ -147,9 +147,6 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Playlist not found");
   }
 
-  console.log("Playlist videos type:", typeof playlist.videos);
-  console.log("Is playlist videos an array:", Array.isArray(playlist.videos));
-
   if (playlist.owner.toString() != req.user._id.toString()) {
     throw new ApiError(403, "You cannot add to this playlist");
   }
@@ -254,7 +251,41 @@ const deletePlaylist = asyncHandler(async (req, res) => {
   }
 });
 
-const removeVideoFromPlaylist = asyncHandler(async (req, res) => {});
+const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
+  const { playlistId, videoId } = req.params;
+  if (!playlistId || !mongoose.Types.ObjectId.isValid(playlistId)) {
+    throw new ApiError(400, "Playlist Id is not valid in the database");
+    }
+    const playlist = await Playlist.findById(playlistId);
+    if (!playlist) {
+      throw new ApiError(404, "Playlist not found");
+      }
+      if (req.user._id.toString() !== playlist.owner.toString()) {
+        throw new ApiError(404, "You cannot change")
+        }
+        if (!videoId  || !mongoose.Types.ObjectId.isValid(videoId)) {
+          throw new ApiError(400, "Video Id is not valid in the database");
+        }
+        const video = await Video.findById(videoId);
+        if (!video) {
+          throw new ApiError(404, "Video not found");
+          }
+          if (!playlist.videos.includes(videoId)) {
+            throw new ApiError(404, "Video not found in the playlist")
+          }
+          try {
+            const updatedPlaylist = await Playlist.findByIdAndUpdate(
+              playlistId, 
+              {$pull: { videos: videoId }},
+              { new: true}
+            );
+              return res
+              .status(200)
+              .json(new ApiResponse(200, updatedPlaylist, "Video successfully removed from playlist"));
+              } catch (error) {
+                throw new ApiError(500, "Unable to remove video from playlist, please try again");
+                }
+});
 export {
   createPlaylist,
   getUserPlaylist,
