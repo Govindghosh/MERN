@@ -1,30 +1,18 @@
-
+import { ToastContainer } from 'react-toastify';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+import useLogin from '../hooks/useLogin';
 
 function LoginPage() {
-  // Initialize React Hook Form
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const { login } = useLogin();
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-  // State to store login response
-  const [loginResponse, setLoginResponse] = useState(null);
-  const [loginError, setLoginError] = useState(null);
-
-  // Handle form submission
   const onSubmit = async (data) => {
     try {
-      // Make API request using Axios
-      const response = await axios.post(process.env.VITE_LOGIN_API, data);
-      setLoginResponse(response.data);
-      setLoginError(null);
+      await login(data);
+      console.log(data)
     } catch (error) {
-      setLoginError(error.response.data);
-      setLoginResponse(null);
+      // Handle error if needed
     }
   };
 
@@ -57,8 +45,8 @@ function LoginPage() {
               {...register('password', {
                 required: 'Password is required',
                 minLength: {
-                  value: 8,
-                  message: 'Password must be at least 8 characters',
+                  value: 6,
+                  message: 'Password must be at least 6 characters',
                 },
               })}
               className="block w-full p-2 mt-1 text-gray-700 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
@@ -73,14 +61,9 @@ function LoginPage() {
           >
             Login
           </button>
-          {loginResponse && (
-            <p className="text-green-500 text-sm">{loginResponse.message}</p>
-          )}
-          {loginError && (
-            <p className="text-red-500 text-sm">{loginError.message}</p>
-          )}
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 }
