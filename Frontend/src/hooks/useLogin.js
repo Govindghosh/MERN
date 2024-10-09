@@ -1,7 +1,8 @@
-import { login as authLogin } from "../store/authSlice";
 import { useDispatch } from "react-redux";
-import axios from 'axios';
-import { toast } from 'react-toastify';
+import axios from "axios";
+import { toast } from "react-toastify";
+import toastConfig from "../components/toast"; 
+import { login as authLogin } from "../store/authSlice";
 
 const useLogin = () => {
   const dispatch = useDispatch();
@@ -9,15 +10,14 @@ const useLogin = () => {
   const login = async (data) => {
     try {
       const response = await axios.post(import.meta.env.VITE_LOGIN_API, data);
-      console.log(response.data)
+      console.log(response.data);
       dispatch(authLogin(response.data));
-      toast.success(response.data.message);
+      toast.success(response.data.message, toastConfig);
       return response.data;
     } catch (error) {
-        toast.error(error.response.data.message);
+      toast.error("user does not exist", toastConfig);
     }
   };
-
   return { login };
 };
 
