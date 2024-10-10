@@ -1,8 +1,9 @@
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { useForm } from "react-hook-form";
 import useLogin from "../hooks/useLogin";
 import { useState } from "react";
 import "react-toastify/dist/ReactToastify.css";
+import { Link } from "react-router-dom";
 
 function LoginPage() {
   const { login } = useLogin();
@@ -24,16 +25,18 @@ function LoginPage() {
     }
   };
 
-
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-200">
-      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg">
-        <h2 className="text-3xl font-extrabold text-gray-900 mb-6 text-center">Login to Your Account</h2>
+    <div className="min-h-screen flex items-center justify-center bg-[url('/bg.jpg')] bg-cover bg-no-repeat px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full md:max-w-lg lg:max-w-xl p-8 md:p-10 bg-white rounded-lg shadow-lg">
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-6 text-center">
+          Login to Your Account
+        </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Email Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
             <input
               type="email"
               placeholder="Enter your email"
@@ -47,13 +50,17 @@ function LoginPage() {
               className="block w-full px-3 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
           {/* Password Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
             <input
               type="password"
               placeholder="Enter your password"
@@ -67,7 +74,9 @@ function LoginPage() {
               className="block w-full px-3 py-2 mt-1 text-gray-700 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
             />
             {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -81,6 +90,14 @@ function LoginPage() {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
+          <div>
+            <Link
+              to="/signUp"
+              className="text-sm text-blue-900 hover:text-gray-900"
+            >
+              Don&apos;t have an account? Sign up
+            </Link>
+          </div>
         </form>
         <ToastContainer />
       </div>
