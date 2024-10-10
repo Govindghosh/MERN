@@ -3,9 +3,11 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import toastConfig from "../components/toast"; 
 import { login as authLogin } from "../store/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const useLogin = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const login = async (data) => {
     try {
@@ -13,6 +15,7 @@ const useLogin = () => {
       console.log(response.data);
       dispatch(authLogin(response.data));
       toast.success(response.data.message, toastConfig);
+      navigate("/home");
       return response.data;
     } catch (error) {
       toast.error("user does not exist", toastConfig);

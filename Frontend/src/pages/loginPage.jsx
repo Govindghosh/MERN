@@ -27,7 +27,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[url('/bg.jpg')] bg-cover bg-no-repeat px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full md:max-w-lg lg:max-w-xl p-8 md:p-10 bg-white rounded-lg shadow-lg">
+      <div className="max-w-md w-full md:max-w-lg lg:max-w-xl p-8 md:p-10 bg-transparent rounded-lg shadow-lg">
         <h2 className="text-3xl font-extrabold text-gray-900 mb-6 text-center">
           Login to Your Account
         </h2>
