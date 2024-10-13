@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
-import toastConfig from "../../components/toast"; 
+import toastConfig from "../../utils/toast";
 import { logout } from "../../store/authSlice";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";

@@ -1,6 +1,8 @@
 import { useSelector } from "react-redux";
 import useLogout from "../hooks/user/useLogout";
 import { ToastContainer } from "react-toastify";
+import UploadVideoForm from "../components/UploadVideoForm";
+import VideoList from "../components/VideoList";
 
 function HomePage() {
     const { logoutUser, loading } = useLogout();
@@ -32,6 +34,9 @@ function HomePage() {
                         className="rounded-lg w-full max-w-md"
                     />
                 )}
+            </div>
+            <div className="m5">
+                <UploadVideoForm />
             </div>
             <button
                 onClick={logoutUser}
