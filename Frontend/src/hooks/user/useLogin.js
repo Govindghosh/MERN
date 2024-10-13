@@ -1,8 +1,8 @@
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
-import toastConfig from "../components/toast"; 
-import { login as authLogin } from "../store/authSlice";
+import toastConfig from "../../components/toast"; 
+import { login as authLogin } from "../../store/authSlice";
 import { useNavigate } from "react-router-dom";
 
 const useLogin = () => {
@@ -12,9 +12,8 @@ const useLogin = () => {
   const login = async (data) => {
     try {
       const response = await axios.post(import.meta.env.VITE_LOGIN_API, data);
-      console.log(response.data);
-      dispatch(authLogin(response.data));
       toast.success(response.data.message, toastConfig);
+      dispatch(authLogin(response.data));
       navigate("/home");
       return response.data;
     } catch (error) {

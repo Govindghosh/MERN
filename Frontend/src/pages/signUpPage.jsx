@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
-import useSignUp from "../hooks/useSignUp";
+import useSignUp from "../hooks/user/useSignUp";
 
 function SignUpPage() {
   const {

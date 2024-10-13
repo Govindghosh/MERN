@@ -1,8 +1,8 @@
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
-import toastConfig from "../components/toast";
-import { logout } from "../store/authSlice";
+import toastConfig from "../../components/toast"; 
+import { logout } from "../../store/authSlice";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -15,12 +15,11 @@ const useLogout = () => {
     setLoading(true);
     try {
       const response = await axios.post(import.meta.env.VITE_LOGOUT_API);
-      dispatch(logout());
-      localStorage.removeItem("user-info");
       toast.success(
         response.data.message || "Logged out successfully",
         toastConfig
       );
+      dispatch(logout());
       navigate("/");
     } catch (error) {
       toast.error(

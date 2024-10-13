@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux";
-import useLogout from "../hooks/useLogout";
+import useLogout from "../hooks/user/useLogout";
+import { ToastContainer } from "react-toastify";
 
 function HomePage() {
     const { logoutUser, loading } = useLogout();
@@ -39,6 +40,7 @@ function HomePage() {
             >
                 {loading ? "Logging Out..." : "Log Out"}
             </button>
+            <ToastContainer />
         </div>
     );
 }
