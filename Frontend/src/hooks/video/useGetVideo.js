@@ -18,11 +18,15 @@ const useGetAllVideo = () => {
     userId,
   }) => {
     setIsLoading(true);
+
     try {
       const response = await axios.get(import.meta.env.VITE_GETALLVIDEO_API, {
         params: { page, limit, query, sortBy, sortType, userId },
       });
-      dispatch(setVideos(response.data.data.videos));
+
+      const fetchedVideos = response.data.data.videos;
+      console.log("fetchedVideos from hook", fetchedVideos)
+      dispatch(setVideos(fetchedVideos)); // Dispatch videos to Redux store
       toast.success(response.data.message, toastConfig);
     } catch (error) {
       toast.error(

@@ -38,6 +38,9 @@ function HomePage() {
             <div className="m5">
                 <UploadVideoForm />
             </div>
+            <div className="m5">
+                <VideoList />
+            </div>
             <button
                 onClick={logoutUser}
                 type="button"
