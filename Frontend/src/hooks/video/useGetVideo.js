@@ -37,7 +37,6 @@ const useGetAllVideo = () => {
       setIsLoading(false);
     }
   };
-
   return { getAllVideos, isLoading };
 };
 
