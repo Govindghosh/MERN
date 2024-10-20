@@ -4,7 +4,7 @@ import app from "./app.js";
 dotenv.config({
   path: "./.env",
 });
-const port = process.env.POST || 8100;
+const port = process.env.PORT || 8100;
 connectDB()
   .then(() => {
     app.listen(port, () => {
