@@ -3,6 +3,7 @@ import useLogout from "../hooks/user/useLogout";
 import { ToastContainer } from "react-toastify";
 import UploadVideoForm from "../components/UploadVideoForm";
 import VideoList from "../components/VideoList";
+import ChannelProfileUI from "../components/ChannelProfileUI";
 
 function HomePage() {
     const { logoutUser, loading } = useLogout();
@@ -40,6 +41,9 @@ function HomePage() {
             </div>
             <div className="m5">
                 <VideoList />
+            </div>
+            <div>
+                <ChannelProfileUI />
             </div>
             <button
                 onClick={logoutUser}
