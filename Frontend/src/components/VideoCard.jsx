@@ -1,10 +1,10 @@
 import { useState } from "react";
+import LikeButton from "./LikeButton";
 
 const VideoCard = ({ video }) => {
-  const { title, description, thumbnail, videoFile, views, duration, updatedAt } = video;
+  const { title, description, thumbnail, videoFile, views, duration, updatedAt, _id } = video;
   const [isHovered, setIsHovered] = useState(false); // Track hover state
   const [isModalOpen, setIsModalOpen] = useState(false); // Track modal state
-
   // Format video duration to "MM:SS"
   const formatDuration = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -19,9 +19,9 @@ const VideoCard = ({ video }) => {
         className="w-full sm:w-64 border rounded-lg overflow-hidden shadow-md cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={() => setIsModalOpen(true)} // Open modal on click
+         // Open modal on click
       >
-        <div className="relative">
+        <div className="relative" onClick={() => setIsModalOpen(true)}>
           {/* Hover to play preview */}
           {isHovered ? (
             <video
@@ -45,10 +45,12 @@ const VideoCard = ({ video }) => {
         <div className="p-3">
           <h3 className="font-semibold text-md truncate">{title}</h3>
           <p className="text-sm text-gray-600 truncate mt-1">{description}</p>
+            
           <div className="text-xs text-gray-500 mt-2">
             {views} views • {new Date(updatedAt).toLocaleDateString()}
           </div>
         </div>
+        <LikeButton key={_id} type="video" _id={_id}/>
       </div>
 
       {/* Modal Video Player */}

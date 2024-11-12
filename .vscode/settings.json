@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
-        "UPLOADVIDEO",
-        "GETALLVIDEO"
+        "GETALLVIDEO",
+        "TOGGLELIKE",
+        "UPLOADVIDEO"
     ]
 }
