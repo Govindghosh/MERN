@@ -12,8 +12,6 @@ const useToggleLike = () => {
       const apiEndPoint = import.meta.env.VITE_TOGGLELIKE_API
         .replace(":type", type)
         .replace(":id", _id);
-        console.log("Final API Endpoint:", apiEndPoint);
-      console.log("from toggle Like hook",_id, "type", type)
       const response = await axios.patch(apiEndPoint, null, {
        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
