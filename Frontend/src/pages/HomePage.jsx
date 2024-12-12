@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import UploadVideoForm from "../components/UploadVideoForm";
 import VideoList from "../components/VideoList";
 import ChannelProfileUI from "../components/ChannelProfileUI";
-
+import LikedVideos from "../components/LikedVideo";
 function HomePage() {
     const { logoutUser, loading } = useLogout();
     const authUser = useSelector((state) => state.auth.user);
@@ -52,6 +52,7 @@ function HomePage() {
             >
                 {loading ? "Logging Out..." : "Log Out"}
             </button>
+            <LikedVideos />
             <ToastContainer />
         </div>
     );

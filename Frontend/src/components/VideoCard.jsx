@@ -51,6 +51,7 @@ const VideoCard = ({ video }) => {
           </div>
         </div>
         <LikeButton key={_id} type="video" _id={_id}/>
+        
       </div>
 
       {/* Modal Video Player */}
