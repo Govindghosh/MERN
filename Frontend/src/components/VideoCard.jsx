@@ -1,5 +1,6 @@
 import { useState } from "react";
 import LikeButton from "./LikeButton";
+import CommentForm from "./CommentForm";
 
 const VideoCard = ({ video }) => {
   const { title, description, thumbnail, videoFile, views, duration, updatedAt, _id } = video;
@@ -51,7 +52,7 @@ const VideoCard = ({ video }) => {
           </div>
         </div>
         <LikeButton key={_id} type="video" _id={_id}/>
-        
+        <CommentForm videoId={_id} />
       </div>
 
       {/* Modal Video Player */}
