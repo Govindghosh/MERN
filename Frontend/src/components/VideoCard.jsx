@@ -1,6 +1,7 @@
 import { useState } from "react";
 import LikeButton from "./LikeButton";
 import CommentForm from "./CommentForm";
+import PropTypes from "prop-types";
 
 const VideoCard = ({ video }) => {
   const { title, description, thumbnail, videoFile, views, duration, updatedAt, _id } = video;
@@ -81,5 +82,16 @@ const VideoCard = ({ video }) => {
     </>
   );
 };
-
+VideoCard.propTypes = {
+  video: PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    thumbnail: PropTypes.string.isRequired,
+    videoFile: PropTypes.string.isRequired,
+    views: PropTypes.number.isRequired,
+    duration: PropTypes.number.isRequired,
+    updatedAt: PropTypes.string.isRequired,
+    _id: PropTypes.string.isRequired,
+  }).isRequired,
+};
 export default VideoCard;
